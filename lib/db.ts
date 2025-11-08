@@ -10,10 +10,6 @@ class Database {
 	private constructor() {
 		this.uri = process.env.MONGODB_URI || '';
 		this.dbName = process.env.MONGODB_DB || 'binder';
-
-		if (!this.uri) {
-			throw new Error('MONGODB_URI environment variable is not defined');
-		}
 	}
 
 	public static getInstance(): Database {
@@ -26,6 +22,10 @@ class Database {
 	public async connect(): Promise<void> {
 		if (this.client && this.db) {
 			return;
+		}
+
+		if (!this.uri) {
+			throw new Error('MONGODB_URI environment variable is not defined');
 		}
 
 		try {
