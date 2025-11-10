@@ -6,6 +6,12 @@ COPY package.json package-lock.json* ./
 
 # Install OS-level build dependencies required by node-gyp (python, make, g++)
 # then install npm packages. Cleanup apt lists to keep the image small.
+
+# Allow build-time injection of public values used by the client bundle.
+# These must be available before `next build` so client code picks them up.
+ARG NEXT_PUBLIC_APP_URL
+ARG NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
+
 ENV PYTHON=python3
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
@@ -17,6 +23,10 @@ RUN apt-get update \
 	   g++ \
 	&& rm -rf /var/lib/apt/lists/* \
 	&& npm install --legacy-peer-deps
+
+# Export build-time NEXT_PUBLIC_* args into ENV so `next build` can read them
+ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
+ENV NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=${NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID}
 
 COPY . .
 ENV NODE_ENV=production
