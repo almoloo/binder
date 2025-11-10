@@ -1,9 +1,22 @@
 FROM node:20-bullseye-slim AS builder
 WORKDIR /app
 
+
 COPY package.json package-lock.json* ./
 
-RUN npm install --legacy-peer-deps
+# Install OS-level build dependencies required by node-gyp (python, make, g++)
+# then install npm packages. Cleanup apt lists to keep the image small.
+ENV PYTHON=python3
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends \
+	   python3 \
+	   python3-dev \
+	   python-is-python3 \
+	   build-essential \
+	   make \
+	   g++ \
+	&& rm -rf /var/lib/apt/lists/* \
+	&& npm install --legacy-peer-deps
 
 COPY . .
 ENV NODE_ENV=production
