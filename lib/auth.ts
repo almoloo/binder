@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { randomBytes } from 'node:crypto';
 import { db as mongo } from '@/lib/db';
+import { lowerAddress } from '@/lib/utils';
 
 export type SessionDoc = {
 	_id: string; // sessionId
@@ -67,12 +68,26 @@ export async function startSession(address: `0x${string}`): Promise<string> {
 	await ensureIndexes();
 	const sessionId = makeId(24);
 	const dbase = mongo.getDb();
+
+	// UPSERT USER RECORD
+	await dbase.collection('users').updateOne(
+		{ address: lowerAddress(address) },
+		{
+			$setOnInsert: {
+				address: lowerAddress(address),
+				createdAt: now(),
+			},
+		},
+		{ upsert: true }
+	);
+
 	await dbase.collection<SessionDoc>('sessions').insertOne({
 		_id: sessionId,
-		address,
+		address: lowerAddress(address),
 		createdAt: now(),
 		expiresAt: daysFromNow(SESSION_TTL_DAYS),
 	});
+
 	return sessionId;
 }
 
