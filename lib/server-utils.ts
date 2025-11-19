@@ -6,6 +6,15 @@ import type {
 	ContractChainCreationData,
 } from '@/types/etherscan';
 import { lowerAddress } from './utils';
+import {
+	ABIFunctionObject,
+	ABIInput,
+	ABIOutput,
+	ABIStateMutability,
+	ABIType,
+	InputTypes,
+} from '@/types/abi';
+import { AbiStateMutability } from 'viem';
 
 export async function generateEtherscanEndpoint(
 	params: Record<string, string>
@@ -60,4 +69,71 @@ export async function getContractDataFromChain(
 		),
 		abi: abiData.result,
 	} as Contract;
+}
+
+export async function getFunctionsFromABI(abi: unknown) {
+	let abiJSON = abi;
+	if (typeof abi === 'string') {
+		abiJSON = JSON.parse(abi);
+	}
+
+	const parsedAbi = abiJSON as Array<{
+		type: ABIType;
+		name?: string;
+		inputs?: Array<ABIInput>;
+		outputs?: Array<ABIOutput>;
+		stateMutability?: AbiStateMutability;
+		anonymous?: boolean;
+	}>;
+
+	const functions = parsedAbi
+		.filter((item) => item.type === 'function' && item.name)
+		.map((func) => ({
+			name: func.name!,
+			inputs: func.inputs || [],
+			outputs: func.outputs || [],
+			stateMutability:
+				func.stateMutability || ABIStateMutability.NONPAYABLE,
+			type: func.type,
+		}));
+
+	return functions as Array<ABIFunctionObject>;
+}
+
+function getFunctionInputType(input: ABIInput): InputTypes {
+	switch (true) {
+		case input.type === 'address':
+			return InputTypes.ADDRESS;
+		case input.type.startsWith('uint') || input.type.startsWith('int'):
+			return InputTypes.NUMBER;
+		case input.type === 'bool':
+			return InputTypes.CHECKBOX;
+		case input.type.startsWith('bytes'):
+		case input.type === 'string':
+			return InputTypes.TEXT;
+		default:
+			return InputTypes.TEXT;
+	}
+}
+
+export async function parseABIFunction(abiFunction: ABIFunctionObject) {
+	const inputs = abiFunction.inputs.map((input) => ({
+		name: input.name,
+		type: input.type,
+		inputType: getFunctionInputType(input),
+	}));
+
+	const outputs = abiFunction.outputs.map((output) => ({
+		name: output.name,
+		type: output.type,
+		inputType: getFunctionInputType(output),
+	}));
+
+	return {
+		name: abiFunction.name,
+		inputs,
+		outputs,
+		stateMutability: abiFunction.stateMutability,
+		type: abiFunction.type,
+	};
 }

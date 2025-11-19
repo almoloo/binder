@@ -1,3 +1,5 @@
+import { Contract, ContractLegend } from '@/types/contracts';
+
 export interface User {
 	id: string;
 	address: `0x${string}`;
@@ -11,4 +13,6 @@ export interface UserContractPref {
 	legendId?: string | null;
 	lastUsedAt: Date;
 	createdAt: Date;
+	contract?: Contract;
+	legend?: ContractLegend;
 }
