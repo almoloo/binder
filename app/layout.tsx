@@ -4,6 +4,7 @@ import './globals.css';
 import { headers } from 'next/headers';
 import ContextProvider from '@/components/layout/context';
 import Header from '@/components/layout/header';
+import Footer from '@/components/layout/footer';
 
 const geistSans = Geist({
 	variable: '--font-geist-sans',
@@ -33,8 +34,11 @@ export default async function RootLayout({
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
 				<ContextProvider cookies={cookies}>
-					<Header />
-					{children}
+					<div className="flex flex-col min-h-screen">
+						<Header />
+						<main className="grow">{children}</main>
+						<Footer />
+					</div>
 				</ContextProvider>
 			</body>
 		</html>

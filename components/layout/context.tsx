@@ -7,6 +7,7 @@ import { mantle, mantleSepoliaTestnet } from '@reown/appkit/networks';
 import { cookieToInitialState, WagmiProvider, type Config } from 'wagmi';
 import { ReactNode } from 'react';
 import SiweAutoLogin from '@/components/layout/siwe-auto-login';
+import { FluentProvider, webDarkTheme } from '@fluentui/react-components';
 
 const queryClient = new QueryClient();
 
@@ -45,15 +46,17 @@ function ContextProvider({
 	);
 
 	return (
-		<WagmiProvider
-			config={wagmiAdapter.wagmiConfig as Config}
-			initialState={initialState}
-		>
-			<QueryClientProvider client={queryClient}>
-				<SiweAutoLogin />
-				{children}
-			</QueryClientProvider>
-		</WagmiProvider>
+		<FluentProvider theme={webDarkTheme}>
+			<WagmiProvider
+				config={wagmiAdapter.wagmiConfig as Config}
+				initialState={initialState}
+			>
+				<QueryClientProvider client={queryClient}>
+					<SiweAutoLogin />
+					{children}
+				</QueryClientProvider>
+			</WagmiProvider>
+		</FluentProvider>
 	);
 }
 
